@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#163b32">
+  <title>注意实验室 · 显示、空间与界面注意</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="topbar" id="topbar">
+    <a class="brand" href="#" id="brandLink" aria-label="返回实验首页">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>
+        <strong>注意实验室</strong>
+        <small>Display, Space &amp; Interface</small>
+      </span>
+    </a>
+    <div class="topbar-status" id="topbarStatus">准备开始</div>
+  </header>
+  <main id="app" tabindex="-1"></main>
+  <footer class="site-footer" id="siteFooter">
+    <span>工程心理学 · 作业二</span>
+    <span>匿名编号，不收集姓名或学号</span>
+  </footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <dialog id="backupDialog">
+    <form method="dialog" class="dialog-body">
+      <h2>本地数据备份</h2>
+      <p>如果网络中断，你可以保存本次已完成的实验数据，随后交给研究者处理。</p>
+      <div class="dialog-actions">
+        <button class="button secondary" value="cancel">关闭</button>
+        <button class="button" id="dialogCsv" value="none">下载 CSV</button>
+        <button class="button dark" id="dialogJson" value="none">下载 JSON</button>
+      </div>
+    </form>
+  </dialog>
+  <script src="./app.js"></script>
+</body>
+</html>
