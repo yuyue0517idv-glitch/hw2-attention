@@ -45,6 +45,90 @@ const EXPERIMENT_INFO = {
   }
 };
 
+const STUDY_ANALYSIS = {
+  n: 7,
+  dataLabel: '课程后台导出 CSV · 7 名匿名被试 · 315 个正式试次',
+  map: {
+    noLandmarkAccuracy: 98.810,
+    landmarkAccuracy: 95.238,
+    accuracyDiff: -3.571,
+    accuracySD: 6.557,
+    accuracyDz: -0.545,
+    noLandmarkRT: 3293.810,
+    landmarkRT: 3501.476,
+    rtDiffNoMinusLandmark: -207.667,
+    rtSD: 535.909,
+    rtDz: -0.388
+  },
+  graph: {
+    areaError: 10.557,
+    volumeError: 9.657,
+    errorDiffVolumeMinusArea: -0.900,
+    errorSD: 5.872,
+    errorDz: -0.153,
+    areaAccuracy: 98.571,
+    volumeAccuracy: 100.000,
+    areaEstimatePass: 61.429,
+    volumeEstimatePass: 64.286
+  },
+  ui: {
+    seen: 5,
+    missed: 2,
+    detectionRate: 71.429,
+    nonattentionRate: 28.571,
+    meanAbsCountError: 0.143,
+    countCorrect: 6
+  }
+};
+
+function pairedCohenDz(meanDifference, pairedSD) {
+  if (!Number.isFinite(Number(meanDifference)) || !Number.isFinite(Number(pairedSD)) || Number(pairedSD) === 0) {
+    return null;
+  }
+  return Number(meanDifference) / Number(pairedSD);
+}
+
+function signedValue(value, digits, suffix) {
+  if (value == null || !Number.isFinite(Number(value))) return '—';
+  const rounded = Number(Number(value).toFixed(digits == null ? 3 : digits));
+  return (rounded > 0 ? '+' : '') + rounded + (suffix || '');
+}
+
+function studyAnalysisHtml() {
+  const mapAccDz = pairedCohenDz(STUDY_ANALYSIS.map.accuracyDiff, STUDY_ANALYSIS.map.accuracySD);
+  const mapRtDz = pairedCohenDz(STUDY_ANALYSIS.map.rtDiffNoMinusLandmark, STUDY_ANALYSIS.map.rtSD);
+  const graphErrDz = pairedCohenDz(STUDY_ANALYSIS.graph.errorDiffVolumeMinusArea, STUDY_ANALYSIS.graph.errorSD);
+  return '<div class="section-head">' +
+      '<div><p class="eyebrow">提交版分析快照</p><h2>效应量与预测对照</h2></div>' +
+      '<span class="status-badge ok">n = ' + STUDY_ANALYSIS.n + '</span>' +
+    '</div>' +
+    '<p class="result-sub">' + escapeHtml(STUDY_ANALYSIS.dataLabel) + '。正式分析只纳入 practice = 0 的试次。</p>' +
+    '<div class="aggregate-panel analysis-table-wrap">' +
+      '<div class="aggregate-head"><h3>配对效应量</h3><span class="status-badge">Cohen\'s d_z</span></div>' +
+      '<table class="aggregate-table">' +
+        '<thead><tr><th>实验与指标</th><th>条件 A</th><th>条件 B</th><th>配对差</th><th>配对差 SD</th><th>Cohen\'s d_z</th></tr></thead>' +
+        '<tbody>' +
+          '<tr><td>校园地图 · 正确率</td><td>无地标 ' + STUDY_ANALYSIS.map.noLandmarkAccuracy.toFixed(3) + '%</td><td>有地标 ' + STUDY_ANALYSIS.map.landmarkAccuracy.toFixed(3) + '%</td><td>有 − 无 = ' + signedValue(STUDY_ANALYSIS.map.accuracyDiff, 3, ' pp') + '</td><td>' + STUDY_ANALYSIS.map.accuracySD.toFixed(3) + '</td><td>' + signedValue(mapAccDz, 3) + '</td></tr>' +
+          '<tr><td>校园地图 · 反应时</td><td>无地标 ' + STUDY_ANALYSIS.map.noLandmarkRT.toFixed(3) + ' ms</td><td>有地标 ' + STUDY_ANALYSIS.map.landmarkRT.toFixed(3) + ' ms</td><td>无 − 有 = ' + signedValue(STUDY_ANALYSIS.map.rtDiffNoMinusLandmark, 3, ' ms') + '</td><td>' + STUDY_ANALYSIS.map.rtSD.toFixed(3) + '</td><td>' + signedValue(mapRtDz, 3) + '</td></tr>' +
+          '<tr><td>面积体积 · 绝对误差</td><td>面积 ' + STUDY_ANALYSIS.graph.areaError.toFixed(3) + ' pp</td><td>体积 ' + STUDY_ANALYSIS.graph.volumeError.toFixed(3) + ' pp</td><td>体积 − 面积 = ' + signedValue(STUDY_ANALYSIS.graph.errorDiffVolumeMinusArea, 3, ' pp') + '</td><td>' + STUDY_ANALYSIS.graph.errorSD.toFixed(3) + '</td><td>' + signedValue(graphErrDz, 3) + '</td></tr>' +
+        '</tbody>' +
+      '</table>' +
+      '<p class="result-note">Cohen\'s d_z = 配对差均值 / 配对差标准差（ddof = 1）。n = 7，只作描述性解释，不进行显著性推断。</p>' +
+    '</div>' +
+    '<div class="aggregate-panel analysis-table-wrap">' +
+      '<div class="aggregate-head"><h3>与原文及收数前预测的对照</h3><span class="status-badge warn">探索性结果</span></div>' +
+      '<table class="aggregate-table comparison-table">' +
+        '<thead><tr><th>实验</th><th>收数前预测 / 原研究方向</th><th>本次实测</th><th>结论</th></tr></thead>' +
+        '<tbody>' +
+          '<tr><td>校园地图<br><span class="muted">Aretz (1991); Levine (1982)</span></td><td>明显地标应提供额外空间参照，提高方向判断正确率并缩短反应时。</td><td>无地标 98.810%、3293.810 ms；有地标 95.238%、3501.476 ms。正确率差 −3.571 pp（d_z = −0.545），反应时差 −207.667 ms（d_z = −0.388）。</td><td>未支持预测；有地标略慢、正确率略低，但正确率接近天花板，不能据此否定理论。</td></tr>' +
+          '<tr><td>面积与体积<br><span class="muted">Cleveland &amp; McGill (1984); Hollands &amp; Dyre (2000)</span></td><td>二维面积编码应比三维体积编码更准确、比例估计误差更小。</td><td>误差：面积 10.557 pp、体积 9.657 pp；正确率：面积 98.571%、体积 100%；误差差 −0.900 pp（d_z = −0.153）。</td><td>未支持预测；方向相反但效应量很小，存在明显天花板效应。</td></tr>' +
+          '<tr><td>界面非注意盲视<br><span class="muted">Simons &amp; Chabris (1999)</span></td><td>集中计数时，部分被试会漏报高显著、非任务相关的意外刺激。</td><td>5/7 报告看到巨型鼠标，2/7 未报告；非注意盲视率 28.571%；平均绝对计数误差 0.143 个。</td><td>方向与原研究一致，但检测率偏高；刺激大、移动慢、对比强且样本小。</td></tr>' +
+        '</tbody>' +
+      '</table>' +
+      '<p class="result-note">原研究提供方向性参照，本任务改变刺激、试次和比例范围，因此不能把本次效应量直接等同于原论文数值。</p>' +
+    '</div>';
+}
+
 let state = {
   participant: '',
   handedness: 'right',
@@ -1304,13 +1388,16 @@ function renderResults() {
       '<div>' +
         '<p class="eyebrow">实验完成</p>' +
         '<h1>你的结果，以及匿名汇总</h1>' +
-        '<p class="lede">先查看本次判断模式；全体数据由注意实验室接口读取。少于 5 名被试时仅展示描述性汇总。</p>' +
+        '<p class="lede">先查看本次判断模式；页面下方同时展示提交版样本的效应量、原研究方向和收数前预测对照，以及实时匿名汇总。</p>' +
       '</div>' +
       '<div class="sample-chip"><strong id="sampleCount">读取中</strong><span>当前项目匿名被试</span></div>' +
     '</section>' +
     '<section>' +
       '<div class="section-head"><div><p class="eyebrow">本人结果</p><h2>表现概览</h2></div><span class="status-badge ' + (IS_TEST ? 'warn' : '') + '">' + (IS_TEST ? '测试数据' : '正式模式') + '</span></div>' +
       resultCardsHtml() +
+    '</section>' +
+    '<section class="result-section">' +
+      studyAnalysisHtml() +
     '</section>' +
     '<section class="result-section">' +
       '<div class="section-head"><div><p class="eyebrow">数据状态</p><h2>三段数据分别提交</h2></div><button class="button secondary" id="resultsBackup">下载全部备份</button></div>' +
